@@ -5,9 +5,11 @@ class AgreedAttributor extends Attributor {
     const normalized = typeof value === 'string' ? JSON.parse(value) : value;
     node.setAttribute('data-agreed', JSON.stringify(normalized));
 
-    const allAgreed = Object.keys(normalized).length > 0
-      && Object.values(normalized).every(Boolean);
+    const values = Object.values(normalized);
+    const allAgreed = values.length > 0 && values.every(Boolean);
+    const anyDisagreed = values.some((v) => v === false);
     node.classList.toggle('ql-agreed', allAgreed);
+    node.classList.toggle('ql-disagreed', anyDisagreed);
 
     return true;
   }
@@ -15,6 +17,7 @@ class AgreedAttributor extends Attributor {
   remove(node: HTMLElement) {
     node.removeAttribute('data-agreed');
     node.classList.remove('ql-agreed');
+    node.classList.remove('ql-disagreed');
   }
 
   value(node: HTMLElement): Record<string, boolean> | undefined {

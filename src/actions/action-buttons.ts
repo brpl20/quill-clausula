@@ -4,6 +4,7 @@ import type { ClausulaType } from '../types.js';
 const LOCK_SVG = `<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5 7V5a3 3 0 0 1 6 0v2"/></svg>`;
 const AGREE_SVG = `<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3.5 8.5 6.5 11.5 12.5 4.5"/></svg>`;
 const DISAGREE_SVG = `<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="4" x2="12" y2="12"/><line x1="12" y1="4" x2="4" y2="12"/></svg>`;
+const CONVERSATION_SVG = `<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h12v8H6l-3 2.5V11H2z"/><circle cx="5.5" cy="7" r="0.5" fill="currentColor" stroke="none"/><circle cx="8" cy="7" r="0.5" fill="currentColor" stroke="none"/><circle cx="10.5" cy="7" r="0.5" fill="currentColor" stroke="none"/></svg>`;
 
 export function createActionButtons(doc: Document): HTMLDivElement {
   const container = doc.createElement('div');
@@ -31,9 +32,17 @@ export function createActionButtons(doc: Document): HTMLDivElement {
   disagreeBtn.setAttribute('title', 'Disagree');
   disagreeBtn.innerHTML = DISAGREE_SVG;
 
+  const conversationBtn = doc.createElement('button');
+  conversationBtn.className = 'ql-clausula-btn ql-clausula-conversation';
+  conversationBtn.setAttribute('tabindex', '-1');
+  conversationBtn.setAttribute('type', 'button');
+  conversationBtn.setAttribute('title', 'Conversation');
+  conversationBtn.innerHTML = CONVERSATION_SVG;
+
   container.appendChild(lockBtn);
   container.appendChild(agreeBtn);
   container.appendChild(disagreeBtn);
+  container.appendChild(conversationBtn);
 
   return container;
 }
@@ -79,22 +88,36 @@ export function syncButtonState(
         return false;
       }
     });
+    const anyDisagreed = children.some((child) => {
+      const raw = child.getAttribute('data-agreed');
+      if (!raw) return false;
+      try {
+        const agreed = JSON.parse(raw) as Record<string, boolean>;
+        return agreed[currentUser!] === false;
+      } catch {
+        return false;
+      }
+    });
     agreeBtn.classList.toggle('active', allAgreed);
-    disagreeBtn.classList.toggle('active', false);
+    disagreeBtn.classList.toggle('active', anyDisagreed);
     domNode.classList.toggle('ql-agreed', allAgreed);
+    domNode.classList.toggle('ql-disagreed', anyDisagreed);
   } else {
     // Child or standalone: check own data-agreed
     const raw = domNode.getAttribute('data-agreed');
     let userAgreed = false;
+    let userDisagreed = false;
     if (raw) {
       try {
         const agreed = JSON.parse(raw) as Record<string, boolean>;
         userAgreed = agreed[currentUser] === true;
+        userDisagreed = agreed[currentUser] === false;
       } catch {
         // ignore
       }
     }
     agreeBtn.classList.toggle('active', userAgreed);
-    disagreeBtn.classList.toggle('active', false);
+    disagreeBtn.classList.toggle('active', userDisagreed);
+    domNode.classList.toggle('ql-disagreed', userDisagreed);
   }
 }

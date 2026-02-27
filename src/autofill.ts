@@ -36,10 +36,25 @@ const TRIGGERS: [RegExp, ClausulaType][] = [
 ];
 
 /**
+ * Extra triggers for non-clausula formats (parte, objeto).
+ * Returns { format, value } for applying to the line.
+ */
+export interface ExtraTriggerResult {
+  format: string;
+  value: string;
+}
+
+const EXTRA_TRIGGERS: [RegExp, ExtraTriggerResult][] = [
+  [/^contratante$/i, { format: 'parte', value: 'contratante' }],
+  [/^contratado$/i, { format: 'parte', value: 'contratado' }],
+  [/^objeto$/i, { format: 'objeto', value: 'true' }],
+];
+
+/**
  * The full regex that matches any trigger word at the start of a line.
  * Used as the `prefix` in the keyboard binding.
  */
-export const AUTOFILL_PREFIX = /^\s*?(cl[aá]usula|sub[- ]?cl[aá]usula|sub|cl|par[aá]grafo|par|§|inciso|inc|al[ií]nea|al)$/i;
+export const AUTOFILL_PREFIX = /^\s*?(cl[aá]usula|sub[- ]?cl[aá]usula|sub|cl|par[aá]grafo|par|§|inciso|inc|al[ií]nea|al|contratante|contratado|objeto)$/i;
 
 /**
  * Given a matched prefix string, return the corresponding clausula type.
@@ -48,6 +63,17 @@ export function matchTrigger(prefix: string): ClausulaType | null {
   const trimmed = prefix.trim();
   for (const [pattern, type] of TRIGGERS) {
     if (pattern.test(trimmed)) return type;
+  }
+  return null;
+}
+
+/**
+ * Given a matched prefix string, return a non-clausula format trigger if matched.
+ */
+export function matchExtraTrigger(prefix: string): ExtraTriggerResult | null {
+  const trimmed = prefix.trim();
+  for (const [pattern, result] of EXTRA_TRIGGERS) {
+    if (pattern.test(trimmed)) return result;
   }
   return null;
 }

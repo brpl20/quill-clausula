@@ -19,7 +19,11 @@ const quill = new Quill('#editor-container', {
             false,
           ],
         },
+        {
+          parte: ['contratante', 'contratado', false],
+        },
       ],
+      ['objeto', 'assinatura'],
       ['bold', 'italic', 'underline'],
       [{ list: 'ordered' }, { list: 'bullet' }],
       ['clean'],
@@ -36,9 +40,28 @@ const quill = new Quill('#editor-container', {
   },
 });
 
-// Load sample legal content
+// Load sample legal content with PARTES, OBJETO, clausulas, and ASSINATURA
 const sampleDelta = {
   ops: [
+    // PARTES
+    {
+      insert:
+        'João da Silva, brasileiro, casado, empresário, inscrito(a) no CPF sob o nº 123.456.789-00, RG nº 12.345.678-9, residente e domiciliado(a) em Rua das Flores, 123, São Paulo/SP\n',
+      attributes: { parte: 'contratante' },
+    },
+    {
+      insert:
+        'Maria Oliveira, brasileira, solteira, advogada, inscrita no CPF sob o nº 987.654.321-00, RG nº 98.765.432-1, residente e domiciliada em Av. Paulista, 456, São Paulo/SP\n',
+      attributes: { parte: 'contratado' },
+    },
+
+    // OBJETO
+    {
+      insert: 'Prestação de serviços de consultoria jurídica\n',
+      attributes: { objeto: 'true' },
+    },
+
+    // Clausulas
     { insert: 'Do Objeto\n', attributes: { clausula: 'clausula' } },
     {
       insert:
@@ -98,6 +121,14 @@ const sampleDelta = {
         'Este parágrafo é único, demonstrando a regra do Parágrafo Único.\n',
       attributes: { clausula: 'paragrafo' },
     },
+
+    // ASSINATURA
+    {
+      insert: {
+        assinatura: { local: 'São Paulo/SP', dataAssinatura: '27 de fevereiro de 2026', testemunhas: 2 },
+      },
+    },
+    { insert: '\n' },
   ],
 };
 

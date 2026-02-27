@@ -1,15 +1,24 @@
 import Quill from 'quill';
 import ClausulaItem from './blots/clausula-item.js';
 import ClausulaContainer from './blots/clausula-container.js';
+import ParteItem from './blots/parte-item.js';
+import ParteContainer from './blots/parte-container.js';
+import ObjetoItem from './blots/objeto-item.js';
+import ObjetoContainer from './blots/objeto-container.js';
+import AssinaturaEmbed from './blots/assinatura-embed.js';
 import LockedAttribute from './formats/locked.js';
 import AgreedAttribute from './formats/agreed.js';
 import { computeIndices } from './numbering/counter.js';
 import { formatLabel } from './numbering/formatter.js';
-import { clausulaHandler } from './toolbar/handler.js';
-import { AUTOFILL_PREFIX, matchTrigger } from './autofill.js';
+import { computeParteIndices, formatParteLabel } from './partes/partes-counter.js';
+import { extractSignatureLines } from './assinatura/assinatura-sync.js';
+import { renderAssinatura } from './assinatura/assinatura-renderer.js';
+import { clausulaHandler, parteHandler, objetoHandler, assinaturaHandler } from './toolbar/handler.js';
+import { AUTOFILL_PREFIX, matchTrigger, matchExtraTrigger } from './autofill.js';
 import { PROMOTE_ORDER, HIERARCHY, DEFAULT_OPTIONS } from './types.js';
 import { createActionButtons, syncButtonState } from './actions/action-buttons.js';
-import type { ClausulaModuleOptions, ClausulaType } from './types.js';
+import { createFloatingBar, createUndoModal, isContractFullyAgreed } from './actions/floating-bar.js';
+import type { ClausulaModuleOptions, ClausulaType, ConversationContext } from './types.js';
 
 const Module = Quill.import('core/module') as any;
 const Sources = (Quill as any).sources || { USER: 'user', SILENT: 'silent', API: 'api' };
@@ -19,10 +28,16 @@ class ClausulaModule extends Module {
 
   options: ClausulaModuleOptions;
   private renumberScheduled = false;
+  private floatingBar: HTMLElement | null = null;
 
   static register() {
     Quill.register(ClausulaItem, true);
     Quill.register(ClausulaContainer, true);
+    Quill.register(ParteItem, true);
+    Quill.register(ParteContainer, true);
+    Quill.register(ObjetoItem, true);
+    Quill.register(ObjetoContainer, true);
+    Quill.register(AssinaturaEmbed, true);
     Quill.register(LockedAttribute, true);
     Quill.register(AgreedAttribute, true);
   }
@@ -31,10 +46,13 @@ class ClausulaModule extends Module {
     super(quill, options);
     this.options = { ...DEFAULT_OPTIONS, ...options };
 
-    // Register toolbar handler
+    // Register toolbar handlers
     const toolbar = quill.getModule('toolbar');
     if (toolbar) {
       toolbar.addHandler('clausula', clausulaHandler);
+      toolbar.addHandler('parte', parteHandler);
+      toolbar.addHandler('objeto', objetoHandler);
+      toolbar.addHandler('assinatura', assinaturaHandler);
     }
 
     // Add keyboard bindings
@@ -47,6 +65,11 @@ class ClausulaModule extends Module {
 
     // Locked-line edit prevention
     this.addLockedLinePrevention();
+
+    // Floating action bar
+    if (this.options.showFloatingBar !== false) {
+      this.initFloatingBar();
+    }
 
     // Initial renumber
     this.scheduleRenumber();
@@ -66,9 +89,19 @@ class ClausulaModule extends Module {
     this.quill.format('clausula', false, Sources.USER);
   }
 
+  private removeParteFormat() {
+    this.quill.format('parte', false, Sources.USER);
+  }
+
+  private removeObjetoFormat() {
+    this.quill.format('objeto', false, Sources.USER);
+  }
+
   private addKeyboardBindings() {
     const keyboard = this.quill.getModule('keyboard') as any;
     const self = this;
+
+    // ── Clausula bindings ──
 
     // Enter on empty clausula item: remove format
     this.prependBinding(keyboard, 'Enter', {
@@ -115,7 +148,6 @@ class ClausulaModule extends Module {
     });
 
     // Tab: promote to deeper type in hierarchy
-    // Must prepend — Quill's default 'tab' binding inserts \t and would consume the event
     this.prependBinding(keyboard, 'Tab', {
       key: 'Tab',
       format: ['clausula'],
@@ -148,8 +180,79 @@ class ClausulaModule extends Module {
       },
     });
 
-    // Autofill: type a trigger word + Space at the start of a plain line
-    // e.g. "cl " → Cláusula, "§ " → Parágrafo, "inc " → Inciso
+    // ── Parte bindings ──
+
+    // Enter on empty parte item: remove format
+    this.prependBinding(keyboard, 'Enter', {
+      key: 'Enter',
+      collapsed: true,
+      empty: true,
+      format: ['parte'],
+      handler() {
+        self.removeParteFormat();
+        return false;
+      },
+    });
+
+    // Backspace at offset 0 on parte line: remove format
+    this.prependBinding(keyboard, 'Backspace', {
+      key: 'Backspace',
+      collapsed: true,
+      offset: 0,
+      format: ['parte'],
+      shiftKey: null,
+      metaKey: null,
+      ctrlKey: null,
+      altKey: null,
+      handler() {
+        self.removeParteFormat();
+        return false;
+      },
+    });
+
+    // Tab on parte line: toggle between contratante/contratado
+    this.prependBinding(keyboard, 'Tab', {
+      key: 'Tab',
+      format: ['parte'],
+      handler(range: any, context: any) {
+        const currentType = context.format.parte;
+        const newType = currentType === 'contratante' ? 'contratado' : 'contratante';
+        self.quill.format('parte', newType, Sources.USER);
+        return false;
+      },
+    });
+
+    // ── Objeto bindings ──
+
+    // Enter on empty objeto item: remove format
+    this.prependBinding(keyboard, 'Enter', {
+      key: 'Enter',
+      collapsed: true,
+      empty: true,
+      format: ['objeto'],
+      handler() {
+        self.removeObjetoFormat();
+        return false;
+      },
+    });
+
+    // Backspace at offset 0 on objeto line: remove format
+    this.prependBinding(keyboard, 'Backspace', {
+      key: 'Backspace',
+      collapsed: true,
+      offset: 0,
+      format: ['objeto'],
+      shiftKey: null,
+      metaKey: null,
+      ctrlKey: null,
+      altKey: null,
+      handler() {
+        self.removeObjetoFormat();
+        return false;
+      },
+    });
+
+    // ── Autofill: type a trigger word + Space at the start of a plain line ──
     this.prependBinding(keyboard, ' ', {
       key: ' ',
       shiftKey: null,
@@ -159,12 +262,22 @@ class ClausulaModule extends Module {
         blockquote: false,
         table: false,
         clausula: false,
+        parte: false,
+        objeto: false,
       },
       prefix: AUTOFILL_PREFIX,
       handler(range: any, context: any) {
         const triggerText = context.prefix as string;
+
+        // Check clausula triggers first
         const clausulaType = matchTrigger(triggerText);
-        if (!clausulaType) return true;
+        // Check extra triggers (parte, objeto)
+        const extraTrigger = matchExtraTrigger(triggerText);
+
+        if (!clausulaType && !extraTrigger) return true;
+
+        const formatName = clausulaType ? 'clausula' : extraTrigger!.format;
+        const formatValue = clausulaType || extraTrigger!.value;
 
         const { length } = triggerText;
         const [line, offset] = self.quill.getLine(range.index);
@@ -175,12 +288,12 @@ class ClausulaModule extends Module {
         self.quill.history.cutoff();
 
         // Delete the trigger text + the space we just inserted,
-        // then apply the clausula format to the line's trailing \n
+        // then apply the format to the line's trailing \n
         const delta = new (self.quill.constructor.import('delta'))()
           .retain(range.index - offset)
           .delete(length + 1)
           .retain(line.length() - 2 - offset)
-          .retain(1, { clausula: clausulaType });
+          .retain(1, { [formatName]: formatValue });
 
         self.quill.updateContents(delta, Sources.USER);
         self.quill.history.cutoff();
@@ -251,19 +364,154 @@ class ClausulaModule extends Module {
     return false;
   }
 
+  private initFloatingBar() {
+    const doc = this.quill.root.ownerDocument;
+    const editorContainer = this.quill.container as HTMLElement;
+
+    this.floatingBar = createFloatingBar(doc, {
+      onUndo: () => this.handleGlobalUndo(),
+      onAgreeAll: () => this.handleGlobalAgree(),
+      onDisagreeAll: () => this.handleGlobalDisagree(),
+      onLockAll: () => this.handleGlobalLock(),
+      onJudge: () => this.options.onJudge?.(),
+      onShare: () => this.options.onShare?.(),
+      onSign: () => this.options.onSign?.(),
+    });
+
+    editorContainer.appendChild(this.floatingBar);
+  }
+
+  private getAllItems(): any[] {
+    const containers = this.quill.scroll.descendants(ClausulaContainer) as any[];
+    const allItems: any[] = [];
+    for (const container of containers) {
+      if (!container.children) continue;
+      let cur = container.children.head;
+      while (cur) {
+        allItems.push(cur);
+        cur = cur.next;
+      }
+    }
+    return allItems;
+  }
+
+  private getAllParteItems(): any[] {
+    const containers = this.quill.scroll.descendants(ParteContainer) as any[];
+    const allItems: any[] = [];
+    for (const container of containers) {
+      if (!container.children) continue;
+      let cur = container.children.head;
+      while (cur) {
+        allItems.push(cur);
+        cur = cur.next;
+      }
+    }
+    return allItems;
+  }
+
+  private getAllObjetoItems(): any[] {
+    const containers = this.quill.scroll.descendants(ObjetoContainer) as any[];
+    const allItems: any[] = [];
+    for (const container of containers) {
+      if (!container.children) continue;
+      let cur = container.children.head;
+      while (cur) {
+        allItems.push(cur);
+        cur = cur.next;
+      }
+    }
+    return allItems;
+  }
+
+  private handleGlobalUndo() {
+    const doc = this.quill.root.ownerDocument;
+    const modal = createUndoModal(
+      doc,
+      () => {
+        // Confirm: remove all locks and agreements
+        const allItems = this.getAllItems();
+        for (const item of allItems) {
+          const index = this.quill.getIndex(item);
+          this.quill.formatLine(index, 1, 'locked', false, Sources.SILENT);
+          this.quill.formatLine(index, 1, 'agreed', false, Sources.SILENT);
+        }
+        this.scheduleRenumber();
+      },
+      () => { /* cancel – noop */ },
+    );
+    doc.body.appendChild(modal);
+  }
+
+  private handleGlobalAgree() {
+    const currentUser = this.options.currentUser;
+    if (!currentUser) return;
+
+    const allItems = this.getAllItems();
+    for (const item of allItems) {
+      const domNode = item.domNode as HTMLElement;
+      if (domNode.classList.contains('ql-locked-true')) continue;
+      this.setAgreed(item, currentUser, true);
+    }
+    this.scheduleRenumber();
+  }
+
+  private handleGlobalDisagree() {
+    const currentUser = this.options.currentUser;
+    if (!currentUser) return;
+
+    const allItems = this.getAllItems();
+    for (const item of allItems) {
+      const domNode = item.domNode as HTMLElement;
+      if (domNode.classList.contains('ql-locked-true')) continue;
+      this.setAgreed(item, currentUser, false);
+    }
+    this.scheduleRenumber();
+  }
+
+  private handleGlobalLock() {
+    const allItems = this.getAllItems();
+    // If any item is unlocked, lock all. If all are locked, unlock all.
+    const anyUnlocked = allItems.some(
+      (item: any) => !item.domNode.classList.contains('ql-locked-true'),
+    );
+    const newValue = anyUnlocked ? 'true' : false;
+
+    for (const item of allItems) {
+      const index = this.quill.getIndex(item);
+      this.quill.formatLine(index, 1, 'locked', newValue, Sources.SILENT);
+    }
+    this.scheduleRenumber();
+  }
+
+  private syncFloatingBar() {
+    if (!this.floatingBar) return;
+
+    const signBtn = this.floatingBar.querySelector('.ql-floating-sign') as HTMLButtonElement | null;
+    if (!signBtn) return;
+
+    const allItems = this.getAllItems();
+    const domNodes = allItems.map((item: any) => item.domNode as HTMLElement);
+    const users = this.options.users || (this.options.currentUser ? [this.options.currentUser] : []);
+
+    const fullyAgreed = isContractFullyAgreed(domNodes, users);
+    signBtn.disabled = !fullyAgreed;
+    signBtn.classList.toggle('ready', fullyAgreed);
+  }
+
   private scheduleRenumber() {
     if (this.renumberScheduled) return;
     this.renumberScheduled = true;
     requestAnimationFrame(() => {
       this.renumberScheduled = false;
       this.renumber();
+      this.renumberPartes();
+      this.enforceSingletonObjeto();
+      this.syncAssinatura();
     });
   }
 
   renumber() {
     // Collect ALL clausula items across every container in document order.
-    // This ensures cláusula numbering is continuous even when plain paragraphs
-    // or empty lines split them into separate containers.
     const containers = this.quill.scroll.descendants(
       ClausulaContainer,
     ) as any[];
@@ -293,6 +541,51 @@ class ClausulaModule extends Module {
     // Update action buttons if enabled
     if (this.options.showActions !== false) {
       this.updateActions(allItems);
+    }
+
+    // Sync floating bar sign button state
+    this.syncFloatingBar();
+  }
+
+  renumberPartes() {
+    const allItems = this.getAllParteItems();
+    if (allItems.length === 0) return;
+
+    const indices = computeParteIndices(allItems);
+
+    allItems.forEach((item: any, i: number) => {
+      const info = indices[i];
+      if (!info) return;
+      const label = formatParteLabel(info);
+      const uiNode = item.domNode.querySelector('.ql-ui');
+      if (uiNode) {
+        uiNode.textContent = label;
+      }
+    });
+  }
+
+  enforceSingletonObjeto() {
+    const allItems = this.getAllObjetoItems();
+    if (allItems.length <= 1) return;
+
+    // Keep the first objeto, remove the rest by converting to plain text
+    for (let i = 1; i < allItems.length; i++) {
+      const index = this.quill.getIndex(allItems[i]);
+      this.quill.formatLine(index, 1, 'objeto', false, Sources.SILENT);
+    }
+  }
+
+  syncAssinatura() {
+    const assinaturaBlots = this.quill.scroll.descendants(AssinaturaEmbed) as any[];
+    if (assinaturaBlots.length === 0) return;
+
+    const parteItems = this.getAllParteItems();
+    const lines = extractSignatureLines(parteItems);
+
+    for (const blot of assinaturaBlots) {
+      const config = AssinaturaEmbed.value(blot.domNode);
+      const html = renderAssinatura(lines, config);
+      blot.domNode.innerHTML = html;
     }
   }
 
@@ -324,6 +617,8 @@ class ClausulaModule extends Module {
             if (!target.hasAttribute('disabled') && !(target as HTMLButtonElement).disabled) {
               this.handleDisagree(item, allItems);
             }
+          } else if (target.classList.contains('ql-clausula-conversation')) {
+            this.handleConversation(item);
           }
         });
       }
@@ -412,6 +707,25 @@ class ClausulaModule extends Module {
     this.scheduleRenumber();
   }
 
+  private handleConversation(blot: any) {
+    const callback = this.options.onConversation;
+    if (!callback) return;
+
+    const domNode = blot.domNode as HTMLElement;
+    const type = domNode.getAttribute('data-clausula-type') as ClausulaType;
+    const uiNode = domNode.querySelector('.ql-ui');
+    const text = domNode.textContent?.replace(uiNode?.textContent || '', '').trim() || '';
+
+    const context: ConversationContext = {
+      type,
+      text,
+      domNode,
+      currentUser: this.options.currentUser,
+    };
+
+    callback(context);
+  }
+
   private setAgreed(blot: any, user: string, agree: boolean) {
     const domNode = blot.domNode as HTMLElement;
     const raw = domNode.getAttribute('data-agreed');
@@ -424,11 +738,7 @@ class ClausulaModule extends Module {
       }
     }
 
-    if (agree) {
-      agreed[user] = true;
-    } else {
-      delete agreed[user];
-    }
+    agreed[user] = agree;
 
     const index = this.quill.getIndex(blot);
     const value = Object.keys(agreed).length > 0 ? agreed : false;

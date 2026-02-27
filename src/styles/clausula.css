@@ -167,6 +167,22 @@
   border-color: rgba(39, 174, 96, 0.2);
 }
 
+.ql-clausula-disagree.active {
+  color: #e67e22;
+  background: rgba(230, 126, 34, 0.08);
+  border-color: rgba(230, 126, 34, 0.2);
+}
+
+.ql-clausula-conversation:hover {
+  color: #2980b9;
+}
+
+.ql-clausula-conversation.active {
+  color: #2980b9;
+  background: rgba(41, 128, 185, 0.08);
+  border-color: rgba(41, 128, 185, 0.2);
+}
+
 .ql-clausula-btn:disabled {
   opacity: 0.3;
   cursor: not-allowed;
@@ -181,4 +197,376 @@
 /* ── Agreed state ── */
 .ql-clausula-item.ql-agreed {
   border-left: 3px solid #27ae60;
+}
+
+/* ── Disagreed state ── */
+.ql-clausula-item.ql-disagreed {
+  border-left: 3px solid #e67e22;
+}
+
+/* ══════════════════════════════════════════
+   Floating Action Bar
+   ══════════════════════════════════════════ */
+
+.ql-clausula-floating-bar {
+  position: sticky;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  gap: 4px;
+  padding: 10px 16px;
+  background: #fff;
+  border: 2px solid #222;
+  border-radius: 50px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  z-index: 100;
+  width: fit-content;
+  margin: 24px auto 0;
+  user-select: none;
+}
+
+.ql-floating-btn {
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: #333;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+.ql-floating-btn:hover {
+  background: rgba(0, 0, 0, 0.07);
+  transform: scale(1.1);
+}
+
+.ql-floating-btn:active {
+  transform: scale(0.95);
+}
+
+.ql-floating-btn:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.ql-floating-btn:disabled:hover {
+  background: none;
+  transform: none;
+}
+
+/* Individual button hover colors */
+.ql-floating-undo:hover {
+  color: #7f8c8d;
+}
+
+.ql-floating-agree-all:hover {
+  color: #27ae60;
+  background: rgba(39, 174, 96, 0.1);
+}
+
+.ql-floating-disagree-all:hover {
+  color: #e67e22;
+  background: rgba(230, 126, 34, 0.1);
+}
+
+.ql-floating-lock-all:hover {
+  color: #c0392b;
+  background: rgba(192, 57, 43, 0.1);
+}
+
+.ql-floating-judge:hover {
+  color: #8e44ad;
+  background: rgba(142, 68, 173, 0.1);
+}
+
+.ql-floating-share:hover {
+  color: #2980b9;
+  background: rgba(41, 128, 185, 0.1);
+}
+
+.ql-floating-sign:hover:not(:disabled) {
+  color: #2c3e50;
+  background: rgba(44, 62, 80, 0.1);
+}
+
+/* Sign button ready state (all parties agreed) */
+.ql-floating-sign.ready {
+  color: #27ae60;
+  animation: sign-pulse 2s ease-in-out infinite;
+}
+
+.ql-floating-sign.ready:hover {
+  color: #fff;
+  background: #27ae60;
+}
+
+@keyframes sign-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(39, 174, 96, 0.3); }
+  50% { box-shadow: 0 0 0 6px rgba(39, 174, 96, 0); }
+}
+
+/* Dividers between button groups */
+.ql-floating-btn.ql-floating-lock-all::before,
+.ql-floating-btn.ql-floating-sign::before {
+  content: '';
+  position: absolute;
+  left: -4px;
+  top: 8px;
+  bottom: 8px;
+  width: 1px;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+/* ══════════════════════════════════════════
+   Undo Warning Modal
+   ══════════════════════════════════════════ */
+
+.ql-clausula-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: modal-fade-in 0.15s ease;
+}
+
+@keyframes modal-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.ql-clausula-modal {
+  background: #fff;
+  border-radius: 12px;
+  padding: 28px 32px;
+  max-width: 420px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  animation: modal-slide-in 0.2s ease;
+}
+
+@keyframes modal-slide-in {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.ql-clausula-modal-title {
+  margin: 0 0 12px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.ql-clausula-modal-message {
+  margin: 0 0 24px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #555;
+}
+
+.ql-clausula-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.ql-clausula-modal-btn {
+  padding: 8px 20px;
+  border-radius: 6px;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.ql-clausula-modal-cancel {
+  background: #eee;
+  color: #555;
+}
+
+.ql-clausula-modal-cancel:hover {
+  background: #ddd;
+}
+
+.ql-clausula-modal-confirm {
+  background: #c0392b;
+  color: #fff;
+}
+
+.ql-clausula-modal-confirm:hover {
+  background: #a93226;
+}
+
+/* ══════════════════════════════════════════
+   PARTE (Contract Parties)
+   ══════════════════════════════════════════ */
+
+.ql-parte-container {
+  margin: 0;
+  padding: 0;
+}
+
+.ql-parte-item {
+  position: relative;
+  list-style: none;
+  padding-left: 0;
+  margin-top: 0.5em;
+  line-height: 1.6;
+}
+
+.ql-parte-item:first-child {
+  margin-top: 0;
+}
+
+.ql-parte-item > .ql-ui {
+  position: relative;
+  left: auto;
+  font-weight: bold;
+  white-space: nowrap;
+  user-select: none;
+  pointer-events: none;
+  text-transform: uppercase;
+  color: #2c3e50;
+}
+
+/* ── Parte toolbar dropdown labels ── */
+.ql-snow .ql-picker.ql-parte .ql-picker-label::before,
+.ql-snow .ql-picker.ql-parte .ql-picker-item::before {
+  content: 'Normal';
+}
+
+.ql-snow .ql-picker.ql-parte .ql-picker-label[data-value='contratante']::before,
+.ql-snow .ql-picker.ql-parte .ql-picker-item[data-value='contratante']::before {
+  content: 'Contratante';
+}
+
+.ql-snow .ql-picker.ql-parte .ql-picker-label[data-value='contratado']::before,
+.ql-snow .ql-picker.ql-parte .ql-picker-item[data-value='contratado']::before {
+  content: 'Contratado';
+}
+
+.ql-snow .ql-picker.ql-parte {
+  width: 130px;
+}
+
+/* ══════════════════════════════════════════
+   OBJETO (Contract Object)
+   ══════════════════════════════════════════ */
+
+.ql-objeto-container {
+  margin: 0;
+  padding: 0;
+}
+
+.ql-objeto-item {
+  position: relative;
+  list-style: none;
+  padding-left: 0;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+  text-align: center;
+  font-weight: bold;
+  text-transform: uppercase;
+  border-top: 2px solid #2c3e50;
+  border-bottom: 2px solid #2c3e50;
+  padding: 0.5em 1em;
+  background: rgba(44, 62, 80, 0.03);
+}
+
+.ql-objeto-item > .ql-ui {
+  position: relative;
+  left: auto;
+  font-weight: bold;
+  white-space: nowrap;
+  user-select: none;
+  pointer-events: none;
+  color: #2c3e50;
+}
+
+/* ── Objeto toolbar button label ── */
+.ql-snow .ql-objeto {
+  width: auto !important;
+}
+
+.ql-snow .ql-objeto::after {
+  content: 'Objeto';
+  font-size: 13px;
+}
+
+/* ══════════════════════════════════════════
+   ASSINATURA (Signatures)
+   ══════════════════════════════════════════ */
+
+.ql-assinatura-block {
+  margin-top: 2em;
+  padding: 1.5em 2em;
+  border-top: 2px solid #2c3e50;
+  text-align: center;
+  user-select: none;
+}
+
+.ql-assinatura-header {
+  margin-bottom: 2em;
+  font-size: 0.95em;
+  color: #555;
+}
+
+.ql-assinatura-line {
+  display: inline-block;
+  width: 280px;
+  margin: 1em 2em;
+  text-align: center;
+  vertical-align: top;
+}
+
+.ql-assinatura-rule {
+  font-size: 0.9em;
+  color: #333;
+  margin-bottom: 0.3em;
+  letter-spacing: 0.02em;
+}
+
+.ql-assinatura-nome {
+  font-weight: bold;
+  font-size: 0.9em;
+  color: #2c3e50;
+}
+
+.ql-assinatura-role {
+  font-size: 0.75em;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #7a7062;
+  margin-top: 0.15em;
+}
+
+.ql-assinatura-testemunhas-header {
+  margin-top: 2em;
+  margin-bottom: 0.5em;
+  font-weight: bold;
+  font-size: 0.85em;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #555;
+}
+
+/* ── Assinatura toolbar button label ── */
+.ql-snow .ql-assinatura {
+  width: auto !important;
+}
+
+.ql-snow .ql-assinatura::after {
+  content: 'Assinatura';
+  font-size: 13px;
 }
