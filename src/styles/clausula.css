@@ -1,0 +1,115 @@
+/* ── Container ── */
+.ql-clausula-container {
+  margin: 0;
+  padding: 0;
+}
+
+/* ── Item base ── */
+.ql-clausula-item {
+  position: relative;
+  list-style: none;
+}
+
+/*
+ * The .ql-ui span is set to position:absolute by Quill's core CSS.
+ * We position it at the left edge of each item's padding area,
+ * so it doesn't overlap the content text.
+ */
+.ql-clausula-item > .ql-ui {
+  left: 0;
+  font-weight: bold;
+  white-space: nowrap;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* ── Per-type indentation + prefix space ── */
+
+/* Cláusula: prefix like "CLÁUSULA PRIMEIRA — " needs ~20em */
+.ql-clausula-item[data-clausula-type='clausula'] {
+  padding-left: 0;
+  margin-top: 1em;
+  margin-bottom: 0.3em;
+}
+.ql-clausula-item[data-clausula-type='clausula']:first-child {
+  margin-top: 0;
+}
+/* Cláusula prefix is inline, not absolutely positioned — it's too long and variable */
+.ql-clausula-item[data-clausula-type='clausula'] > .ql-ui {
+  position: relative;
+  left: auto;
+}
+
+/* Sub-cláusula: prefix like "1.2 " */
+.ql-clausula-item[data-clausula-type='subclausula'] {
+  padding-left: 5em;
+  margin-top: 0.25em;
+}
+.ql-clausula-item[data-clausula-type='subclausula'] > .ql-ui {
+  left: 2em;
+}
+
+/* Parágrafo: prefix like "Parágrafo Único. " */
+.ql-clausula-item[data-clausula-type='paragrafo'] {
+  padding-left: 2em;
+  margin-top: 0.4em;
+}
+.ql-clausula-item[data-clausula-type='paragrafo'] > .ql-ui {
+  position: relative;
+  left: auto;
+}
+
+/* Inciso: prefix like "III — " */
+.ql-clausula-item[data-clausula-type='inciso'] {
+  padding-left: 7em;
+  margin-top: 0.15em;
+}
+.ql-clausula-item[data-clausula-type='inciso'] > .ql-ui {
+  left: 4em;
+  font-weight: normal;
+}
+
+/* Alínea: prefix like "a) " */
+.ql-clausula-item[data-clausula-type='alinea'] {
+  padding-left: 9em;
+  margin-top: 0.15em;
+}
+.ql-clausula-item[data-clausula-type='alinea'] > .ql-ui {
+  left: 7em;
+  font-weight: normal;
+}
+
+/* ── Toolbar dropdown labels ── */
+.ql-snow .ql-picker.ql-clausula .ql-picker-label::before,
+.ql-snow .ql-picker.ql-clausula .ql-picker-item::before {
+  content: 'Normal';
+}
+
+.ql-snow .ql-picker.ql-clausula .ql-picker-label[data-value='clausula']::before,
+.ql-snow .ql-picker.ql-clausula .ql-picker-item[data-value='clausula']::before {
+  content: 'Cláusula';
+}
+
+.ql-snow .ql-picker.ql-clausula .ql-picker-label[data-value='subclausula']::before,
+.ql-snow .ql-picker.ql-clausula .ql-picker-item[data-value='subclausula']::before {
+  content: 'Sub-cláusula';
+}
+
+.ql-snow .ql-picker.ql-clausula .ql-picker-label[data-value='paragrafo']::before,
+.ql-snow .ql-picker.ql-clausula .ql-picker-item[data-value='paragrafo']::before {
+  content: 'Parágrafo';
+}
+
+.ql-snow .ql-picker.ql-clausula .ql-picker-label[data-value='inciso']::before,
+.ql-snow .ql-picker.ql-clausula .ql-picker-item[data-value='inciso']::before {
+  content: 'Inciso';
+}
+
+.ql-snow .ql-picker.ql-clausula .ql-picker-label[data-value='alinea']::before,
+.ql-snow .ql-picker.ql-clausula .ql-picker-item[data-value='alinea']::before {
+  content: 'Alínea';
+}
+
+.ql-snow .ql-picker.ql-clausula {
+  width: 130px;
+}

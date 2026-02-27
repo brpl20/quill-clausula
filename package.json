@@ -1,0 +1,46 @@
+{
+  "name": "quill-clausula",
+  "version": "0.1.0",
+  "description": "Brazilian legal document formatting module for Quill — auto-numbered Cláusulas, Parágrafos, Incisos, and Alíneas",
+  "type": "module",
+  "main": "dist/quill-clausula.js",
+  "module": "dist/quill-clausula.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/quill-clausula.mjs",
+      "require": "./dist/quill-clausula.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./dist/quill-clausula.css": "./dist/quill-clausula.css"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "vite demo",
+    "build": "vite build && tsc --emitDeclarationOnly",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "peerDependencies": {
+    "quill": "^2.0.0"
+  },
+  "devDependencies": {
+    "quill": "^2.0.3",
+    "typescript": "^5.4.2",
+    "vite": "^5.4.0",
+    "vitest": "^2.0.0",
+    "jsdom": "^24.0.0"
+  },
+  "keywords": [
+    "quill",
+    "quill-module",
+    "legal",
+    "brazilian-law",
+    "clausula",
+    "contract",
+    "rich-text"
+  ],
+  "license": "MIT"
+}

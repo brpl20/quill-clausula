@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>quill-clausula</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0}
+
+    :root {
+      --ink: #1a1612;
+      --paper: #f8f5ef;
+      --paper-warm: #f2ede4;
+      --parchment: #e8e0d0;
+      --gold: #8b6914;
+      --gold-light: #c4a34a;
+      --gold-faint: rgba(139, 105, 20, 0.08);
+      --rule: #d4cbb8;
+      --muted: #7a7062;
+      --radius: 6px;
+      --shadow-sm: 0 1px 3px rgba(26, 22, 18, 0.06);
+      --shadow-md: 0 4px 16px rgba(26, 22, 18, 0.08);
+      --shadow-lg: 0 8px 32px rgba(26, 22, 18, 0.12);
+    }
+
+    html { font-size: 16px; }
+
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    /* ── top bar ── */
+    .topbar {
+      background: var(--ink);
+      color: var(--paper);
+      padding: 0.75rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.8rem;
+      letter-spacing: 0.04em;
+    }
+    .topbar-logo {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-weight: 700;
+      font-size: 1.05rem;
+      letter-spacing: 0.02em;
+    }
+    .topbar-logo span { color: var(--gold-light); }
+    .topbar-sep {
+      width: 1px;
+      height: 1.1rem;
+      background: rgba(248,245,239,0.2);
+    }
+    .topbar-sub { opacity: 0.55; font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; }
+
+    /* ── page layout ── */
+    .page-wrap {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    /* ── config panel ── */
+    .config-panel {
+      background: #fff;
+      border: 1px solid var(--rule);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .config-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 1px solid var(--rule);
+    }
+    .config-header h2 {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+    }
+    .config-icon {
+      width: 14px; height: 14px;
+      fill: none; stroke: var(--muted); stroke-width: 1.5;
+    }
+    .config-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 0.75rem;
+    }
+    .config-field label {
+      display: block;
+      font-size: 0.68rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 0.3rem;
+    }
+    .config-field select {
+      width: 100%;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.82rem;
+      padding: 0.4rem 0.5rem;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      background: var(--paper);
+      color: var(--ink);
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .config-field select:hover { border-color: var(--gold-light); }
+    .config-field select:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold-faint); }
+
+    /* ── editor chrome ── */
+    .editor-frame {
+      background: #fff;
+      border: 1px solid var(--rule);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+    }
+
+    /* override quill snow toolbar */
+    .editor-frame .ql-toolbar.ql-snow {
+      border: none;
+      border-bottom: 1px solid var(--rule);
+      background: var(--paper-warm);
+      padding: 0.5rem 0.75rem;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .editor-frame .ql-snow .ql-picker-label {
+      font-size: 0.82rem;
+    }
+
+    /* editor body */
+    .editor-frame .ql-container.ql-snow {
+      border: none;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1.05rem;
+      line-height: 1.65;
+      color: var(--ink);
+    }
+    .editor-frame .ql-editor {
+      padding: 2rem 2.5rem;
+      min-height: 420px;
+    }
+    .editor-frame .ql-editor:focus { outline: none; }
+
+    /* ── delta viewer ── */
+    .delta-section {
+      margin-top: 1.5rem;
+    }
+    .delta-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      background: none;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: 0.4rem 0.75rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .delta-toggle:hover { border-color: var(--gold-light); color: var(--gold); }
+    .delta-toggle svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2; transition: transform 0.2s; }
+    .delta-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+    .delta-output {
+      margin-top: 0.6rem;
+      background: #1c1917;
+      color: #d6d0c8;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      line-height: 1.6;
+      padding: 1.25rem 1.5rem;
+      border-radius: var(--radius);
+      max-height: 320px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+      box-shadow: var(--shadow-lg);
+      display: none;
+    }
+    .delta-output.open { display: block; }
+    .delta-output::-webkit-scrollbar { width: 6px; }
+    .delta-output::-webkit-scrollbar-track { background: transparent; }
+    .delta-output::-webkit-scrollbar-thumb { background: rgba(214,208,200,0.2); border-radius: 3px; }
+
+    /* ── footer ── */
+    .footer {
+      margin-top: 3rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--rule);
+      text-align: center;
+      font-size: 0.72rem;
+      color: var(--muted);
+      letter-spacing: 0.02em;
+    }
+    .footer a { color: var(--gold); text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="topbar-logo">quill<span>-clausula</span></div>
+    <div class="topbar-sep"></div>
+    <div class="topbar-sub">Brazilian Legal Document Formatting for Quill</div>
+  </div>
+
+  <div class="page-wrap">
+
+    <div class="config-panel" id="format-controls">
+      <div class="config-header">
+        <svg class="config-icon" viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 0 1 8.5 12 3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5 3.5 3.5 0 0 1-3.5 3.5m7.43-2.53a7.76 7.76 0 0 0 0-1.94l2.11-1.65a.5.5 0 0 0 .12-.64l-2-3.46a.5.5 0 0 0-.61-.22l-2.49 1a7.3 7.3 0 0 0-1.69-.98l-.38-2.65A.49.49 0 0 0 14 2h-4a.49.49 0 0 0-.49.42l-.38 2.65a7.3 7.3 0 0 0-1.69.98l-2.49-1a.5.5 0 0 0-.61.22l-2 3.46a.49.49 0 0 0 .12.64l2.11 1.65a7.93 7.93 0 0 0 0 1.94l-2.11 1.65a.5.5 0 0 0-.12.64l2 3.46a.5.5 0 0 0 .61.22l2.49-1c.52.4 1.08.72 1.69.98l.38 2.65c.05.24.26.42.49.42h4c.24 0 .44-.18.49-.42l.38-2.65a7.3 7.3 0 0 0 1.69-.98l2.49 1a.5.5 0 0 0 .61-.22l2-3.46a.49.49 0 0 0-.12-.64z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <h2>Numbering Format</h2>
+      </div>
+      <div class="config-grid">
+        <div class="config-field">
+          <label>Cláusula</label>
+          <select data-format="clausulaFormat">
+            <option value="extenso" selected>PRIMEIRA (extenso)</option>
+            <option value="numeric">1 (numeric)</option>
+            <option value="numeric-padded">01 (padded)</option>
+            <option value="ordinal">1ª (ordinal)</option>
+            <option value="abbreviation">Cl. 1 (abbr.)</option>
+            <option value="regular">Cláusula 1</option>
+            <option value="regular-padded">Cláusula 01</option>
+          </select>
+        </div>
+        <div class="config-field">
+          <label>Parágrafo</label>
+          <select data-format="paragrafoFormat">
+            <option value="extenso" selected>Primeiro (extenso)</option>
+            <option value="uppercase">PRIMEIRO (upper)</option>
+            <option value="numeric">1º (numeric)</option>
+            <option value="symbol">§1º (symbol)</option>
+          </select>
+        </div>
+        <div class="config-field">
+          <label>Inciso</label>
+          <select data-format="incisoFormat">
+            <option value="roman" selected>I, II, III (roman)</option>
+            <option value="roman-lower">i, ii, iii (lower)</option>
+          </select>
+        </div>
+        <div class="config-field">
+          <label>Alínea</label>
+          <select data-format="alineaFormat">
+            <option value="letter-parenthesis" selected>a) b) c)</option>
+            <option value="letter">a. b. c.</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="editor-frame">
+      <div id="editor-container"></div>
+    </div>
+
+    <div class="delta-section">
+      <button class="delta-toggle" id="delta-toggle" aria-expanded="false">
+        <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        Delta JSON
+      </button>
+      <div class="delta-output" id="delta-output"></div>
+    </div>
+
+    <div class="footer">
+      quill-clausula v0.1.0 &mdash; peer dep: <a href="https://quilljs.com">Quill</a> ^2.0.0
+    </div>
+  </div>
+
+  <script type="module" src="./main.ts"></script>
+</body>
+</html>
