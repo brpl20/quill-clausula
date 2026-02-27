@@ -30,6 +30,8 @@ const quill = new Quill('#editor-container', {
       paragrafoFormat: 'extenso',
       incisoFormat: 'roman',
       alineaFormat: 'letter-parenthesis',
+      currentUser: 'user1',
+      users: ['user1', 'user2'],
     },
   },
 });

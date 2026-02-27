@@ -28,6 +28,9 @@ export interface ClausulaModuleOptions {
   paragrafoFormat: ParagrafoFormat;
   incisoFormat: IncisoFormat;
   alineaFormat: AlineaFormat;
+  currentUser?: string;
+  users?: string[];
+  showActions?: boolean;
 }
 
 export interface ClausulaIndex {
@@ -71,4 +74,5 @@ export const DEFAULT_OPTIONS: ClausulaModuleOptions = {
   paragrafoFormat: 'extenso',
   incisoFormat: 'roman',
   alineaFormat: 'letter-parenthesis',
+  showActions: true,
 };

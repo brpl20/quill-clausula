@@ -113,3 +113,72 @@
 .ql-snow .ql-picker.ql-clausula {
   width: 130px;
 }
+
+/* ── Action buttons ── */
+.ql-clausula-actions {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 1;
+}
+
+.ql-clausula-item:hover > .ql-clausula-actions {
+  opacity: 1;
+}
+
+/* Always visible when any button is active */
+.ql-clausula-actions:has(.active) {
+  opacity: 1;
+}
+
+.ql-clausula-btn {
+  width: 22px;
+  height: 22px;
+  padding: 3px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: none;
+  color: #888;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.12s;
+}
+
+.ql-clausula-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: #555;
+}
+
+.ql-clausula-lock.active {
+  color: #c0392b;
+  background: rgba(192, 57, 43, 0.08);
+  border-color: rgba(192, 57, 43, 0.2);
+}
+
+.ql-clausula-agree.active {
+  color: #27ae60;
+  background: rgba(39, 174, 96, 0.08);
+  border-color: rgba(39, 174, 96, 0.2);
+}
+
+.ql-clausula-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* ── Locked state ── */
+.ql-clausula-item.ql-locked-true {
+  background: rgba(0, 0, 0, 0.03);
+  border-left: 3px solid #c0392b;
+}
+
+/* ── Agreed state ── */
+.ql-clausula-item.ql-agreed {
+  border-left: 3px solid #27ae60;
+}

@@ -9,6 +9,8 @@ class ClausulaItem extends Block {
   static tagName = 'DIV' as const;
   static className = 'ql-clausula-item';
 
+  actionsNode: HTMLElement | null = null;
+
   static create(value: ClausulaType) {
     const node = super.create() as HTMLElement;
     node.setAttribute('data-clausula-type', value);
@@ -35,6 +37,31 @@ class ClausulaItem extends Block {
       this.domNode.setAttribute('data-clausula-type', value);
     } else {
       super.format(name, value);
+    }
+  }
+
+  update(mutations: MutationRecord[], context: Record<string, any>) {
+    // Filter out mutations that involve the actions container so Parchment
+    // doesn't treat the buttons as document content (which would corrupt deltas).
+    const filtered = mutations.filter((m) => {
+      if (!this.actionsNode) return true;
+      if (m.type === 'childList') {
+        const addedHasActions = Array.from(m.addedNodes).some(
+          (n) => n === this.actionsNode || (this.actionsNode && this.actionsNode.contains(n)),
+        );
+        const removedHasActions = Array.from(m.removedNodes).some(
+          (n) => n === this.actionsNode || (this.actionsNode && this.actionsNode.contains(n)),
+        );
+        if (addedHasActions || removedHasActions) return false;
+      }
+      // Also ignore attribute mutations on the actions container itself
+      if (m.target === this.actionsNode || (this.actionsNode && this.actionsNode.contains(m.target as Node))) {
+        return false;
+      }
+      return true;
+    });
+    if (filtered.length > 0) {
+      super.update(filtered, context);
     }
   }
 }
