@@ -7,27 +7,29 @@ register();
 const quill = new Quill('#editor-container', {
   theme: 'snow',
   modules: {
-    toolbar: [
-      [
-        {
-          clausula: [
-            'clausula',
-            'subclausula',
-            'paragrafo',
-            'inciso',
-            'alinea',
-            false,
-          ],
-        },
-        {
-          parte: ['contratante', 'contratado', false],
-        },
+    toolbar: {
+      container: [
+        [
+          {
+            clausula: [
+              'clausula',
+              'subclausula',
+              'paragrafo',
+              'inciso',
+              'alinea',
+              false,
+            ],
+          },
+          {
+            parte: ['contratante', 'contratado', false],
+          },
+        ],
+        ['objeto', 'assinatura'],
+        ['bold', 'italic', 'underline'],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        ['clean'],
       ],
-      ['objeto', 'assinatura'],
-      ['bold', 'italic', 'underline'],
-      [{ list: 'ordered' }, { list: 'bullet' }],
-      ['clean'],
-    ],
+    },
     clausula: {
       clausulaFormat: 'extenso',
       subclausulaFormat: 'dotted',

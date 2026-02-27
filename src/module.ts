@@ -53,6 +53,7 @@ class ClausulaModule extends Module {
       toolbar.addHandler('parte', parteHandler);
       toolbar.addHandler('objeto', objetoHandler);
       toolbar.addHandler('assinatura', assinaturaHandler);
+      this.enhanceToolbar(toolbar);
     }
 
     // Add keyboard bindings
@@ -73,6 +74,35 @@ class ClausulaModule extends Module {
 
     // Initial renumber
     this.scheduleRenumber();
+  }
+
+  /**
+   * Add tooltips and visual enhancements to toolbar controls.
+   */
+  private enhanceToolbar(toolbar: any) {
+    const container = toolbar.container as HTMLElement;
+    if (!container) return;
+
+    // Add tooltips to pickers and buttons
+    const clausulaPicker = container.querySelector('.ql-clausula') as HTMLElement;
+    if (clausulaPicker) {
+      clausulaPicker.setAttribute('title', 'Tipo de cláusula (ou digite: cl, par, inc, al + Espaço)');
+    }
+
+    const partePicker = container.querySelector('.ql-picker.ql-parte') as HTMLElement;
+    if (partePicker) {
+      partePicker.setAttribute('title', 'Partes do contrato (ou digite: contratante, contratado + Espaço)');
+    }
+
+    const objetoBtn = container.querySelector('.ql-objeto') as HTMLElement;
+    if (objetoBtn) {
+      objetoBtn.setAttribute('title', 'Inserir OBJETO do contrato (ou digite: objeto + Espaço)');
+    }
+
+    const assinaturaBtn = container.querySelector('.ql-assinatura') as HTMLElement;
+    if (assinaturaBtn) {
+      assinaturaBtn.setAttribute('title', 'Inserir bloco de assinaturas');
+    }
   }
 
   /**
@@ -566,13 +596,25 @@ class ClausulaModule extends Module {
 
   enforceSingletonObjeto() {
     const allItems = this.getAllObjetoItems();
-    if (allItems.length <= 1) return;
 
     // Keep the first objeto, remove the rest by converting to plain text
-    for (let i = 1; i < allItems.length; i++) {
-      const index = this.quill.getIndex(allItems[i]);
-      this.quill.formatLine(index, 1, 'objeto', false, Sources.SILENT);
+    if (allItems.length > 1) {
+      for (let i = 1; i < allItems.length; i++) {
+        const index = this.quill.getIndex(allItems[i]);
+        this.quill.formatLine(index, 1, 'objeto', false, Sources.SILENT);
+      }
     }
+
+    // Sync the toolbar button active state
+    this.syncObjetoButton(allItems.length > 0);
+  }
+
+  private syncObjetoButton(hasObjeto: boolean) {
+    const toolbar = this.quill.getModule('toolbar') as any;
+    if (!toolbar || !toolbar.container) return;
+    const btn = toolbar.container.querySelector('.ql-objeto') as HTMLElement;
+    if (!btn) return;
+    btn.classList.toggle('ql-active', hasObjeto);
   }
 
   syncAssinatura() {

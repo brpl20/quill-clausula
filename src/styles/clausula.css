@@ -1,3 +1,24 @@
+/* ── Toolbar enhancements ── */
+
+/* Group visual separator between legal tools and standard tools */
+.ql-snow .ql-toolbar .ql-formats:has(.ql-clausula, .ql-parte) {
+  border-right: 1px solid rgba(0, 0, 0, 0.1);
+  padding-right: 8px;
+  margin-right: 4px;
+}
+
+.ql-snow .ql-toolbar .ql-formats:has(.ql-objeto, .ql-assinatura) {
+  border-right: 1px solid rgba(0, 0, 0, 0.1);
+  padding-right: 8px;
+  margin-right: 4px;
+}
+
+/* Tooltip styling for toolbar buttons */
+.ql-snow .ql-toolbar button[title],
+.ql-snow .ql-toolbar .ql-picker[title] {
+  position: relative;
+}
+
 /* ── Container ── */
 .ql-clausula-container {
   margin: 0;
@@ -82,7 +103,11 @@
 /* ── Toolbar dropdown labels ── */
 .ql-snow .ql-picker.ql-clausula .ql-picker-label::before,
 .ql-snow .ql-picker.ql-clausula .ql-picker-item::before {
-  content: 'Normal';
+  content: 'Cláusula \25BE';
+}
+
+.ql-snow .ql-picker.ql-clausula .ql-picker-item::before {
+  content: 'Sem formatação';
 }
 
 .ql-snow .ql-picker.ql-clausula .ql-picker-label[data-value='clausula']::before,
@@ -111,7 +136,26 @@
 }
 
 .ql-snow .ql-picker.ql-clausula {
-  width: 130px;
+  width: 140px;
+}
+
+/* Hide the default SVG arrow on clausula picker since we use ▾ in content */
+.ql-snow .ql-picker.ql-clausula .ql-picker-label svg {
+  display: none;
+}
+
+/* Indent sub-items in the clausula dropdown to show hierarchy */
+.ql-snow .ql-picker.ql-clausula .ql-picker-item[data-value='subclausula']::before {
+  padding-left: 12px;
+}
+.ql-snow .ql-picker.ql-clausula .ql-picker-item[data-value='paragrafo']::before {
+  padding-left: 12px;
+}
+.ql-snow .ql-picker.ql-clausula .ql-picker-item[data-value='inciso']::before {
+  padding-left: 24px;
+}
+.ql-snow .ql-picker.ql-clausula .ql-picker-item[data-value='alinea']::before {
+  padding-left: 36px;
 }
 
 /* ── Action buttons ── */
@@ -443,7 +487,11 @@
 /* ── Parte toolbar dropdown labels ── */
 .ql-snow .ql-picker.ql-parte .ql-picker-label::before,
 .ql-snow .ql-picker.ql-parte .ql-picker-item::before {
-  content: 'Normal';
+  content: 'Partes \25BE';
+}
+
+.ql-snow .ql-picker.ql-parte .ql-picker-item::before {
+  content: 'Sem formatação';
 }
 
 .ql-snow .ql-picker.ql-parte .ql-picker-label[data-value='contratante']::before,
@@ -457,7 +505,12 @@
 }
 
 .ql-snow .ql-picker.ql-parte {
-  width: 130px;
+  width: 140px;
+}
+
+/* Hide the default SVG arrow on parte picker since we use ▾ in content */
+.ql-snow .ql-picker.ql-parte .ql-picker-label svg {
+  display: none;
 }
 
 /* ══════════════════════════════════════════
@@ -494,14 +547,45 @@
   color: #2c3e50;
 }
 
-/* ── Objeto toolbar button label ── */
+/* ── Objeto toolbar button ── */
 .ql-snow .ql-objeto {
   width: auto !important;
+  display: inline-flex !important;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px !important;
+  border-radius: 3px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.ql-snow .ql-objeto::before {
+  content: '';
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  background: currentColor;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='12' y1='8' x2='12' y2='16'/%3E%3Cline x1='8' y1='12' x2='16' y2='12'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='12' y1='8' x2='12' y2='16'/%3E%3Cline x1='8' y1='12' x2='16' y2='12'/%3E%3C/svg%3E");
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  flex-shrink: 0;
 }
 
 .ql-snow .ql-objeto::after {
   content: 'Objeto';
   font-size: 13px;
+}
+
+/* Active state when OBJETO exists in document */
+.ql-snow .ql-objeto.ql-active {
+  color: #2c3e50 !important;
+  background: rgba(44, 62, 80, 0.1);
+}
+
+.ql-snow .ql-objeto:hover {
+  background: rgba(44, 62, 80, 0.07);
 }
 
 /* ══════════════════════════════════════════
@@ -561,12 +645,37 @@
   color: #555;
 }
 
-/* ── Assinatura toolbar button label ── */
+/* ── Assinatura toolbar button ── */
 .ql-snow .ql-assinatura {
   width: auto !important;
+  display: inline-flex !important;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px !important;
+  border-radius: 3px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.ql-snow .ql-assinatura::before {
+  content: '';
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  background: currentColor;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z'/%3E%3C/svg%3E");
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  flex-shrink: 0;
 }
 
 .ql-snow .ql-assinatura::after {
   content: 'Assinatura';
   font-size: 13px;
+}
+
+.ql-snow .ql-assinatura:hover {
+  background: rgba(44, 62, 80, 0.07);
 }
